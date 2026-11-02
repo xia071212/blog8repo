@@ -23,9 +23,7 @@ The website lets readers change numeric settings and rerun each stage of inferen
 | Bootstrap interval and coverage (Figures 3–4) | Choose bootstrap resamples B, confidence level and coverage simulations R; press **Update bootstrap & coverage**. | Figure 3 resamples the observed survey **with replacement**, calculates a mean each time and takes the central interval at the chosen confidence level. Higher confidence widens the interval; more B stabilizes its estimated endpoints. Figure 4 independently draws R new surveys and constructs one interval per survey. More R stabilizes the coverage estimate; it does not improve the single interval in Figure 3. |
 | Two-sided hypothesis test (Figures 5–6) | Choose null mean μ₀, number of null simulations M and significance level α; press **Update hypothesis test**. | Both figures use the same simulated null distribution. Figure 5 shades rejection regions determined by α; Figure 6 shades outcomes at least as extreme as the observed statistic, giving the p-value. Changing μ₀ tests a different claim; changing α changes the rejection threshold; increasing M reduces simulation noise. |
 
-**Reset to reproducible baseline** restores all starting settings and the original survey. Sampling changes update the downstream analyses. Bootstrap and test buttons apply only their own section's edited settings; testing retains the observed survey. With the same seed and sampling settings, redrawing changes the observed survey and its bootstrap while retaining the coverage and null simulation streams, allowing controlled comparisons. The Python script reproduces the saved baseline; its parameters can also be edited in the Setup section.
-
-Coverage is the fraction of all R intervals containing the fixed true mean; Figure 4 displays the first 100. The test statistic is t = (sample mean − μ₀)/(sample standard deviation/√n), recalculated for every null survey. The two-sided p-value is (1 + number of simulated |t| values at least as large as observed |t|)/(M + 1); reject when p ≤ α, with α expressed as a proportion. Confidence and significance are separate controls. Percentile bootstrap intervals and this simulated test need not give equivalent decisions.
+The JavaScript files in [code/javascript/](code/javascript/) implement these interactions: `simulation.mjs` runs the statistical simulations, `app.js` applies the controls and recalculates results in a background worker, and `charts.mjs` redraws the six figures. Open [results/interactive.html](results/interactive.html) from the downloaded repository in a browser to use the demonstration locally. Python reproduces the saved baseline tables and figures; JavaScript lets readers explore how those results change with their chosen settings.
 
 **Brief baseline example.** With μ = μ₀ = $3,000, n = 150, B = 1,200, 95% confidence, R = 1,000, M = 10,000 and α = 5%, the bootstrap interval is $2,796.23–$3,304.62; 941 of 1,000 intervals cover μ (94.1%). The p-value is 0.68583, so the $3,000 claim is not rejected.
 
@@ -41,8 +39,12 @@ The complete workflow is written in [code/reproduce.py](code/reproduce.py), with
 | [code/simulation.py](code/simulation.py) | Random stream, sampling, bootstrap, descriptive statistics, percentiles and test calculations |
 | [code/figures.py](code/figures.py) | SVG plotting functions matching the article's axes, labels, colors and shading |
 | [code/verify.py](code/verify.py) | Checks sampling, quantiles, interval nesting and hypothesis-test calculations |
+| [code/javascript/simulation.mjs](code/javascript/simulation.mjs) | Browser-side population, sampling, bootstrap, coverage and null-test calculations |
+| [code/javascript/app.js](code/javascript/app.js), [charts.mjs](code/javascript/charts.mjs) | Apply numeric controls, run background simulations and redraw the figures |
+| [code/javascript/build_interactive.mjs](code/javascript/build_interactive.mjs) | Assemble the standalone interactive demonstration from the JavaScript, interface template and stylesheet |
+| [code/javascript/verify.mjs](code/javascript/verify.mjs) | Check the JavaScript statistical calculations |
 
-The website's JavaScript interaction, page layout and decorative illustration are maintained in the [website repository](https://github.com/xia071212/myrepo/tree/main/blog/posts/post8). Reproducing this analysis does not edit, render or publish the blog and does not require Node.js or Quarto.
+The JavaScript simulation and interaction sources are included here and copied into the website for deployment. The blog's Quarto layout and decorative illustration remain in the [website repository](https://github.com/xia071212/myrepo/tree/main/blog/posts/post8). Python reproduction does not require Node.js or Quarto and does not edit or publish the website.
 
 ## Results used in the article
 
@@ -53,6 +55,7 @@ The website's JavaScript interaction, page layout and decorative illustration ar
 | `results/tables/coverage.csv`, `results/figures/coverage.svg` | Figure 4: interval endpoints, coverage indicators and repeated-survey display |
 | `results/tables/null_statistics.csv`, `results/figures/null.svg`, `pvalue.svg` | Figures 5–6: simulated null statistics, rejection regions and p-value tails |
 | `results/tables/summary.json` | Parameters, sample statistics, interval endpoints, coverage and test results |
+| `results/interactive.html` | Standalone browser demonstration with the same controls and six figures as the website |
 
 Histogram shading approximates the boundaries; the interval endpoints, p-value and rejection decision use the underlying unbinned values.
 
@@ -62,3 +65,5 @@ Histogram shading approximates the boundaries; the interval endpoints, p-value a
 2. Open `code/reproduce.py` to follow its four commented stages, then run the file with Python. It runs from any working directory and generates the complete analysis without network access.
 3. Inspect the generated population and sample in `data/`, tables in `results/tables/`, and six SVG images in `results/figures/`. Open an SVG in a browser to view it.
 4. Run `code/verify.py` with Python to check the statistical helper functions.
+
+5. To explore the interactions locally, open `results/interactive.html` in a modern browser. To rebuild this file after editing its JavaScript or interface, run `code/javascript/build_interactive.mjs` with Node.js 20 or newer; no additional packages are required.
